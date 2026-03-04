@@ -15,19 +15,19 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy dependency files
-COPY Makefile.PL .
-
-# Install Perl dependencies
-RUN cpanm --notest --installdeps .
-
-# Install additional required modules
+# Install Perl dependencies directly
 RUN cpanm --notest \
+    Test::More \
+    YAML \
     Dancer2 \
     Plack \
     Starman \
     DBD::Pg \
-    Dancer2::Plugin::Database
+    Dancer2::Plugin::Database \
+    DBI
+
+# Copy dependency files
+COPY Makefile.PL .
 
 # Copy application files
 COPY . .
