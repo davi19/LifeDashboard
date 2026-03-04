@@ -1,0 +1,22 @@
+# configuration file for production environment
+
+# only log warning and error messsages
+log: "warning"
+
+# log message to a file in logs/
+logger: "file"
+
+# hide errors
+show_stacktrace: 0
+
+# disable server tokens in production environments
+no_server_tokens: 1
+
+# config.yml
+plugins:
+  Database:
+    driver: 'Pg'
+    dsn: 'dbi:Pg:dbname=defaultdb;host=$ENV{DB_URL};port=5432'
+    user: $ENV{'DB_USER'}
+    pass: $ENV{'DB_PASSWORD'}
+
