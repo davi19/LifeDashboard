@@ -23,7 +23,7 @@ startup_info: 1
 plugins:
   Database:
     driver: 'Pg'
-    dsn: 'dbi:Pg:dbname=defaultdb;host=$ENV{DB_URL_DEV};port=5432'
+    dsn: 'dbi:Pg:dbname=defaultdb;host=$ENV{DB_URL_DEV};port=15560'
     user: $ENV{'DB_USER_DEV'}
     pass: $ENV{'DB_PASSWORD_DEV'}
 

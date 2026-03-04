@@ -16,7 +16,7 @@ no_server_tokens: 1
 plugins:
   Database:
     driver: 'Pg'
-    dsn: 'dbi:Pg:dbname=defaultdb;host=$ENV{DB_URL};port=5432'
+    dsn: 'dbi:Pg:dbname=defaultdb;host=$ENV{DB_URL};port=15560'
     user: $ENV{'DB_USER'}
     pass: $ENV{'DB_PASSWORD'}
 
