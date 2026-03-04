@@ -48,10 +48,7 @@ export DANCER_ENVIRONMENT="development"
 ### 3. Run the application
 ```bash
 # Development mode
-download bin/app.psgi
-
-# Or with Starman (production)
-starman --port 5000 bin/app.psgi
+plackup bin/app.psgi
 
 ```
 
