@@ -19,4 +19,7 @@ plugins:
     dsn: 'dbi:Pg:dbname=defaultdb;host=$ENV{DB_URL};port=15560'
     user: $ENV{'DB_USER'}
     pass: $ENV{'DB_PASSWORD'}
-
+    
+session: "Simple"
+session_cookie_key: "dancer2.session"
+session_expires: 8
