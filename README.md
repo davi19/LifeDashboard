@@ -1,6 +1,6 @@
 # LifeDashboard
 
-A web application built with Dancer2 (Perl) for managing a personal dashboard.
+A web application built with Dancer2 (Perl) for managing a personal dashboard. With registers of objectives, runing, gym and reminders.
 
 ## Requirements
 
