@@ -2,6 +2,7 @@ package LifeDashboard;
 use Dancer2;
 use Crypt::Argon2 qw(argon2id_verify);
 use Dancer2::Plugin::Database;
+use Crypt::Argon2 qw(argon2id_pass);
 
 our $VERSION = '0.1';
 
@@ -13,7 +14,7 @@ post '/login' => sub {
     my $dbh = database;
 
     my $sth = $dbh->prepare(
-        "SELECT id, hash FROM accounts WHERE username = ?"
+        "SELECT id, salt FROM accounts WHERE name = ?"
     );
 
     $sth->execute($user);
@@ -40,11 +41,11 @@ post '/login' => sub {
 };
 
 
-get '/accounts/account' => sub {
+get 'accounts/account' => sub {
     my $dbh = database;
 
     my $sth = $dbh->prepare(
-        "SELECT id, username, name, email, active, created_at
+        "SELECT id, name, active
          FROM accounts
          ORDER BY created_at DESC"
     );
@@ -68,7 +69,7 @@ get '/accounts/get/:id' => sub {
     my $dbh = database;
 
     my $sth = $dbh->prepare(
-        "SELECT id, username, name, email, active
+        "SELECT id, name, active
          FROM accounts
          WHERE id = ?"
     );
@@ -88,13 +89,11 @@ get '/accounts/get/:id' => sub {
 # Create new user
 post '/accounts/create' => sub {
     my $name = body_parameters->get('name');
-    my $email = body_parameters->get('email');
     my $password = body_parameters->get('password');
     my $active = body_parameters->get('active') // 1;
-    my $username = body_parameters->get('username') // $email;
 
     # Validate required fields
-    unless ($name && $email && $password) {
+    unless ($name && $password) {
         status 400;
         content_type 'application/json';
         return to_json({ error => 'Nome, email e senha são obrigatórios' });
@@ -102,27 +101,24 @@ post '/accounts/create' => sub {
 
     my $dbh = database;
 
-    # Check if email already exists
     my $check_sth = $dbh->prepare("SELECT id FROM accounts WHERE email = ?");
-    $check_sth->execute($email);
+    $check_sth->execute($name);
     if ($check_sth->fetchrow_hashref) {
         status 400;
         content_type 'application/json';
         return to_json({ error => 'Email já cadastrado' });
     }
 
-    # Hash password
-    use Crypt::Argon2 qw(argon2id_pass);
-    my $hash = argon2id_pass($password, random_string(16), 3, '32M');
 
-    # Insert user
+    my $hash = argon2id_pass($password, , 3, '32M');
+
     my $sth = $dbh->prepare(
-        "INSERT INTO accounts (username, name, email, password_hash, active, created_at)
-         VALUES (?, ?, ?, ?, ?, datetime('now'))"
+        "INSERT INTO accounts ( name, password,salt, active)
+         VALUES (?, ?, ?,?)"
     );
 
     eval {
-        $sth->execute($username, $name, $email, $hash, $active);
+        $sth->execute( $name, $password, $salt, $active);
     };
 
     if ($@) {
@@ -143,10 +139,8 @@ post '/accounts/create' => sub {
 post '/accounts/update/:id' => sub {
     my $id = route_parameters->get('id');
     my $name = body_parameters->get('name');
-    my $email = body_parameters->get('email');
     my $password = body_parameters->get('password');
     my $active = body_parameters->get('active');
-    my $username = body_parameters->get('username');
 
     my $dbh = database;
 
@@ -168,14 +162,9 @@ post '/accounts/update/:id' => sub {
         push @values, $name;
     }
 
-    if (defined $email && $email ne '') {
-        push @fields, "email = ?";
-        push @values, $email;
-    }
-
-    if (defined $username && $username ne '') {
+    if (defined $name && $name ne '') {
         push @fields, "username = ?";
-        push @values, $username;
+        push @values, $name;
     }
 
     if (defined $active && $active ne '') {
@@ -184,7 +173,7 @@ post '/accounts/update/:id' => sub {
     }
 
     if (defined $password && $password ne '') {
-        use Crypt::Argon2 qw(argon2id_pass);
+
         my $hash = argon2id_pass($password, random_string(16), 3, '32M');
         push @fields, "password_hash = ?";
         push @values, $hash;
