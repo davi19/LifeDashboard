@@ -40,4 +40,12 @@ post '/login' => sub {
 };
 
 
+get '/accounts/account' => sub {
+
+    template 'accounts/account' => { 'title' => 'LifeDashboard' };
+
+};
+
+
+
 true;
