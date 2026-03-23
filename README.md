@@ -1,202 +1,74 @@
-# LifeDashboard
+# LifeDashboard (WIP)
 
-A web application built with Dancer2 (Perl) for managing a personal dashboard. With registers of objectives, runing, gym and reminders.
+A personal dashboard system built with Perl (Dancer2) designed to track daily life metrics such as goals, running, gym activity and reminders — with a long-term vision of integrating with low-power embedded devices (ESP32 + e-ink displays).
 
-## Requirements
+# What it is
 
-### Local Environment
-- Perl 5.x or higher
-- PostgreSQL
-- cpanm (Perl module manager)
+LifeDashboard is a web application that centralizes personal data into a single system:
+*  🏃 running tracking
+* 🏋️ gym progress
+* 🎯 objectives
+* ⏰ reminders
 
-### Docker Environment
-- Docker
-- Docker Compose (optional)
+The system is designed to act as a data source for external devices, not just a traditional web UI.
 
-## Environment Variables
+# 🔌 Vision (the real goal)
 
-### Development
-- `DB_URL_DEV` - PostgreSQL server URL (e.g., `localhost` or `db.example.com`)
-- `DB_USER_DEV` - Database user
-- `DB_PASSWORD_DEV` - Database password
+The long-term goal is to use this backend as a lightweight personal data hub, where: an ESP32 device fetches data periodically, renders dashboards and alerts on an e-ink display, operates with low power consumption and minimal interaction. turning this into a custom physical “life dashboard” device
 
-### Production
-- `DB_URL` - PostgreSQL server URL
-- `DB_USER` - Database user
-- `DB_PASSWORD` - Database password
+# Key ideas
 
-### Optional
-- `DANCER_ENVIRONMENT` - Execution environment (`development` or `production`, default: `production`)
-- `DANCER_PORT` - Application port (default: `5000`)
+* backend-first system (UI is secondary)
+* simple API layer for embedded consumption
+* separation between data storage and visualization
+* designed for low-resource clients (ESP32)
 
-## Local Installation
+# Stack 
+* Perl (Dancer2)
+* PostgreSQL
+* Docker (optional deployment)
 
-### 1. Install dependencies
-```bash
-cpanm --installdeps .
+# Running the project
+### Local
+Install dependencies
+`cpanm --installdeps .`
 
-```
+### Configure environment variables
 
-### 2. Configure environment variables
-```bash
-export DB_URL_DEV="localhost"
+```export DB_URL_DEV="localhost"
 export DB_USER_DEV="your_username"
 export DB_PASSWORD_DEV="your_password"
 export DANCER_ENVIRONMENT="development"
 ```
+### Run
 
-### 3. Run the application
-```bash
-# Development mode
-plackup bin/app.psgi
-
-```
-
-The application will be available at `http://localhost:5000`
-
-## Installation with Docker
-
-### 1. Build the image
-```bash
+```plackup bin/app.psgi
+Docker
 docker build -t lifedashboard .
-
-```
-
-### 2. Run the container
-
-#### Development
-```bash
 docker run -d \
-
---name lifedashboard \
-
--p 5000:5000 \
-
--e DANCER_ENVIRONMENT=development \
-
--e DB_URL_DEV=your_db_host \
-
--e DB_USER_DEV=your_username \
-
--e DB_PASSWORD_DEV=your_password \
-
-lifedashboard
+  --name lifedashboard \
+  -p 5000:5000 \
+  -e DANCER_ENVIRONMENT=production \
+  -e DB_URL=your_db_host \
+  -e DB_USER=your_username \
+  -e DB_PASSWORD=your_password \
+  lifedashboard
 ```
+  
+# Why this exists
 
-#### Production
-```bash
-docker run -d \
+This project started as a way to learn and explore Perl (Dancer2) in a practical scenario, instead of just studying syntax in isolation.
+At the same time, it became a playground to experiment with:
+personal data tracking
+backend system design
+integration with embedded devices (ESP32 + e-ink)
 
---name lifedashboard \
+ # Future directions
 
--p 5000:5000 \
+* REST/JSON endpoints optimized for embedded clients
+* ESP32 client for periodic sync
+* e-ink dashboard rendering (low refresh / low power)
+* alert system (events → notifications on device)
 
--e DANCER_ENVIRONMENT=production \
-
--e DB_URL=your_db_host \
-
--e DB_USER=your_username \
-
--e DB_PASSWORD=your_password \
-
-lifedashboard
-
-
-### 3. Docker Compose (optional)
-
-Create a `docker-compose.yml` file:
-
-`yaml
-version: '3.8'
-
-services:
-
-app:
-
-build: .
-
-ports: 
-- "5000:5000" 
-environment: 
-- DANCER_ENVIRONMENT=production 
-- DB_URL=postgres 
-- DB_USER=lifedashboard 
-- DB_PASSWORD=secure_password 
-depends_on: 
-- postgres 
-restart: unless-stopped 
-
-postgres: 
-image: postgres:15-alpine 
-environment: 
-- POSTGRES_DB=defaultdb 
-- POSTGRES_USER=lifedashboard 
-- POSTGRES_PASSWORD=safe_password 
-volumes: 
-- postgres_data:/var/lib/postgresql/data 
-restart: unless-stopped
-
-volumes: 
-postgres_data:
-```
-
-Run with:
-```bash
-docker-compose up -d
-```
-
-## Project Structure
-
-```
-LifeDashboard/
-├──bin/
-│ └── app.psgi # Application entry point
-├── environments/
-│ ├── development.yml # Development configurations
-│ └── production.yml # Production configurations
-├── lib/
-│ └── LifeDashboard.pm # Main application module
-├── public/ # Static files (CSS, JS, images)
-├── views/ # Templates
-├── config.yml # Main configuration
-├── Dockerfile # Docker configuration
-├── Makefile.PL # Perl dependencies
-└── README.md # This file
-
-## Logs
-
-- **Development**: Logs are displayed in the console (STDOUT)
-
-- **Production**: Logs are saved to files in the `logs/` directory
-
-## Troubleshooting
-
-### Database connection error
-Check if:
-
-1. Environment variables are correctly configured
-2. PostgreSQL is running and accessible
-3. Credentials are correct
-4. Port 15560 is accessible (default port configured)
-
-### Container does not start
-```bash
-# View container logs docker logs lifedashboard
-
-# Check environment variables docker inspect lifedashboard
-
-```
-
-## Development
-
-To contribute to the project:
-
-1. Clone the repository
-2. Create a branch for your feature
-3. Make your changes
-4. Run the tests (if available)
-5. Submit a pull request
-
-## License
-
-Perl License (same as Perl)
+# 🤝 Contribution
+Feel free to fork, experiment or extend the project.
