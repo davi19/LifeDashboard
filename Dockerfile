@@ -10,24 +10,15 @@ RUN apt-get update && apt-get install -y \
     cpanminus \
     curl \
     && rm -rf /var/lib/apt/lists/*
-    
 
 # Set working directory
 WORKDIR /app
 
-# Install Perl dependencies directly
-RUN cpanm --notest \
-    Test::More \
-    YAML \
-    Dancer2 \
-    Plack \
-    Starman \
-    DBD::Pg \
-    Dancer2::Plugin::Database \
-    DBI
+# Copy dependency files first for better layer caching
+COPY cpanfile Makefile.PL ./
 
-# Copy dependency files
-COPY Makefile.PL .
+# Install Perl dependencies from project definition
+RUN cpanm --notest --installdeps .
 
 # Copy application files
 COPY . .

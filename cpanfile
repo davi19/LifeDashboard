@@ -2,7 +2,9 @@ requires "Dancer2" => "2.0.1";
 requires "Dancer2::Plugin::Database" => "0";
 requires "Crypt::Argon2"             => "0";
 requires "DBI"                       => "0";
-requires "DBD::mysql"                => "0";
+requires "DBD::Pg"                   => "0";
+requires "Plack"                     => "0";
+requires "Starman"                   => "0";
 
 recommends "YAML"                    => "0";
 recommends "URL::Encode::XS"         => "0";
@@ -36,5 +38,5 @@ feature 'accelerate', 'Accelerate Dancer2 app performance with XS modules' => su
 on "test" => sub {
     requires "Test::More"            => "0";
     requires "HTTP::Request::Common" => "0";
+    requires "Ref::Util"             => "0";
 };
-
