@@ -3,15 +3,15 @@ let userToDelete = null;
 function openModal() {
   const form = document.getElementById('userForm');
   document.getElementById('userModal').classList.remove('hidden');
-  document.getElementById('modalTitle').textContent = 'Novo usuario';
+  document.getElementById('modalTitle').textContent = 'New user';
   document.getElementById('userId').value = '';
   form.reset();
 
   const passwordInput = document.getElementById('userPassword');
   passwordInput.setAttribute('required', 'required');
-  passwordInput.placeholder = 'Defina a senha';
+  passwordInput.placeholder = 'Set a password';
 
-  document.getElementById('passwordHint').textContent = 'A senha e obrigatoria para novos usuarios.';
+  document.getElementById('passwordHint').textContent = 'Password is required for new users.';
 }
 
 function closeModal() {
@@ -26,18 +26,18 @@ async function editUser(userId) {
 
     const payload = await response.json();
     if (!response.ok) {
-      throw new Error(payload.error || 'Erro ao carregar usuario');
+      throw new Error(payload.error || 'Failed to load user');
     }
 
     document.getElementById('userModal').classList.remove('hidden');
-    document.getElementById('modalTitle').textContent = 'Editar usuario';
+    document.getElementById('modalTitle').textContent = 'Edit user';
     document.getElementById('userId').value = payload.id;
     document.getElementById('userName').value = payload.name || '';
     document.getElementById('userStatus').value = String(payload.active ? 1 : 0);
     document.getElementById('userPassword').value = '';
     document.getElementById('userPassword').removeAttribute('required');
-    document.getElementById('userPassword').placeholder = 'Preencha so se quiser trocar a senha';
-    document.getElementById('passwordHint').textContent = 'Deixe a senha vazia para manter a atual.';
+    document.getElementById('userPassword').placeholder = 'Fill this only if you want to change the password';
+    document.getElementById('passwordHint').textContent = 'Leave it empty to keep the current password.';
   } catch (error) {
     showFeedback(error.message, 'error');
   }
@@ -57,7 +57,7 @@ async function submitUser(event) {
   }
 
   if (!userId && !password) {
-    showFeedback('Defina uma senha para criar o usuario.', 'error');
+    showFeedback('Set a password to create the user.', 'error');
     return;
   }
 
@@ -73,7 +73,7 @@ async function submitUser(event) {
 
     const payload = await response.json();
     if (!response.ok) {
-      throw new Error(payload.error || 'Erro ao salvar usuario');
+      throw new Error(payload.error || 'Failed to save user');
     }
 
     closeModal();
@@ -84,7 +84,7 @@ async function submitUser(event) {
       prependUserRow(payload.user);
     }
 
-    showFeedback(payload.message || 'Usuario salvo com sucesso.', 'success');
+    showFeedback(payload.message || 'User saved successfully.', 'success');
   } catch (error) {
     showFeedback(error.message, 'error');
   }
@@ -114,7 +114,7 @@ async function confirmDelete() {
 
     const payload = await response.json();
     if (!response.ok) {
-      throw new Error(payload.error || 'Erro ao excluir usuario');
+      throw new Error(payload.error || 'Failed to delete user');
     }
 
     const row = document.getElementById('user-row-' + userToDelete);
@@ -124,7 +124,7 @@ async function confirmDelete() {
 
     ensureEmptyState();
     closeDeleteModal();
-    showFeedback(payload.message || 'Usuario excluido com sucesso.', 'success');
+    showFeedback(payload.message || 'User deleted successfully.', 'success');
   } catch (error) {
     closeDeleteModal();
     showFeedback(error.message, 'error');
@@ -165,7 +165,7 @@ function buildUserRow(user) {
   const statusClass = user.active
     ? 'inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700'
     : 'inline-flex rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-600';
-  const statusLabel = user.active ? 'Ativo' : 'Inativo';
+  const statusLabel = user.active ? 'Active' : 'Inactive';
   const initial = user.initial || (user.name || '?').slice(0, 1).toUpperCase();
 
   const deleteButton = canDelete ? `
@@ -174,7 +174,7 @@ function buildUserRow(user) {
           onclick="deleteUser(${user.id}, '${escapeJs(user.name)}')"
           class="rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-rose-600 transition hover:bg-rose-50"
         >
-          Excluir
+          Delete
         </button>
   ` : '';
 
@@ -184,7 +184,7 @@ function buildUserRow(user) {
         <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-sm font-bold text-white">${escapeHtml(initial)}</div>
         <div>
           <p class="text-sm font-semibold text-slate-900">${escapeHtml(user.name)}</p>
-          <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Conta interna</p>
+          <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Internal account</p>
         </div>
       </div>
     </td>
@@ -199,7 +199,7 @@ function buildUserRow(user) {
           onclick="editUser(${user.id})"
           class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600 transition hover:border-cyan-500 hover:text-cyan-600"
         >
-          Editar
+          Edit
         </button>
         ${deleteButton}
       </div>
@@ -219,7 +219,7 @@ function ensureEmptyState() {
 
   const empty = document.createElement('tr');
   empty.id = 'emptyState';
-  empty.innerHTML = '<td colspan="4" class="px-6 py-12 text-center text-sm text-slate-500">Nenhum usuario cadastrado.</td>';
+  empty.innerHTML = '<td colspan="4" class="px-6 py-12 text-center text-sm text-slate-500">No users found.</td>';
   tbody.appendChild(empty);
 }
 

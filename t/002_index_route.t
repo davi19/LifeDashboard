@@ -19,4 +19,4 @@ is( $res->header('Location'), '/login', '[GET /] redirects to /login' );
 my $login_res = $test->request( GET '/login' );
 
 ok( $login_res->is_success, '[GET /login] successful' );
-like( $login_res->content, qr/Entrar no painel/, '[GET /login] renders login screen' );
+like( $login_res->content, qr/Sign in/, '[GET /login] renders login screen' );

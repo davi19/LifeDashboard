@@ -1,44 +1,42 @@
-<div class="min-h-screen bg-slate-950 text-slate-100">
-  <div class="mx-auto flex min-h-screen max-w-6xl flex-col justify-center gap-12 px-6 py-10 lg:flex-row lg:items-center">
-    <section class="max-w-xl">
-      <p class="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">
-        LifeDashboard
-      </p>
-      <h1 class="max-w-lg text-4xl font-black leading-tight text-white sm:text-5xl">
-        Controle o acesso do painel sem depender de gambiarra no front.
+<div class="min-h-screen bg-slate-950 px-6 py-10 text-slate-100">
+  <div class="mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+    <section class="rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl shadow-slate-950/40">
+      <p class="text-xs font-semibold uppercase tracking-[0.35em] text-cyan-300">LifeDashboard</p>
+      <h1 class="mt-4 max-w-xl text-4xl font-black leading-tight text-white sm:text-5xl">
+        Access the dashboard and manage your environment without friction.
       </h1>
-      <p class="mt-5 max-w-lg text-base leading-7 text-slate-300">
-        Login direto, sessao simples e area administrativa pronta para manter usuarios do sistema.
+      <p class="mt-5 max-w-2xl text-base leading-7 text-slate-300">
+        Sign in with your account to continue. If this is the first access, create an initial user with the form on the right.
       </p>
-      <div class="mt-8 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
-        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p class="font-semibold text-white">Autenticacao</p>
-          <p class="mt-2">Sessao persistida no servidor com redirecionamento para a area protegida.</p>
+
+      <div class="mt-8 grid gap-4 sm:grid-cols-2">
+        <div class="rounded-3xl border border-white/10 bg-slate-900/70 p-5">
+          <p class="text-sm font-semibold text-white">Flow</p>
+          <p class="mt-2 text-sm leading-6 text-slate-300">Create the first user, sign in, and go straight to the admin area.</p>
         </div>
-        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p class="font-semibold text-white">Usuarios</p>
-          <p class="mt-2">CRUD integrado ao backend ja existente, sem campos fantasmas.</p>
+        <div class="rounded-3xl border border-white/10 bg-slate-900/70 p-5">
+          <p class="text-sm font-semibold text-white">Actual contract</p>
+          <p class="mt-2 text-sm leading-6 text-slate-300">Authentication uses the <span class="font-semibold text-white">accounts</span> table with name, password, salt, and status.</p>
         </div>
       </div>
     </section>
 
-    <section class="w-full max-w-md">
-      <div class="rounded-3xl border border-white/10 bg-white p-8 text-slate-900 shadow-2xl shadow-cyan-950/30">
-        <div class="mb-8">
-          <p class="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">Acesso</p>
-          <h2 class="mt-2 text-3xl font-black text-slate-950">Entrar no painel</h2>
-          <p class="mt-3 text-sm leading-6 text-slate-500">Use o usuario salvo na tabela `accounts` para continuar.</p>
+    <section class="grid gap-6">
+      <div class="rounded-[2rem] bg-white p-8 text-slate-900 shadow-2xl shadow-cyan-950/20">
+        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Access</p>
+        <h2 class="mt-2 text-3xl font-black text-slate-950">Sign in</h2>
+
+        <div class="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 <% error_class %>">
+          <% error_message %>
         </div>
 
-        <% IF error_message %>
-          <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            <% error_message %>
-          </div>
-        <% END %>
+        <div class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 <% notice_class %>">
+          <% notice_message %>
+        </div>
 
-        <form method="post" action="/login" class="space-y-5">
+        <form method="post" action="/login" class="mt-6 space-y-5">
           <div>
-            <label for="user" class="mb-2 block text-sm font-semibold text-slate-700">Usuario</label>
+            <label for="user" class="mb-2 block text-sm font-semibold text-slate-700">User</label>
             <input
               id="user"
               type="text"
@@ -46,21 +44,19 @@
               required
               autofocus
               class="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/15"
-              placeholder="Seu nome de acesso"
+              placeholder="Your user"
             >
           </div>
 
           <div>
-            <div class="mb-2 flex items-center justify-between">
-              <label for="password" class="block text-sm font-semibold text-slate-700">Senha</label>
-            </div>
+            <label for="password" class="mb-2 block text-sm font-semibold text-slate-700">Password</label>
             <input
               id="password"
               type="password"
               name="password"
               required
               class="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/15"
-              placeholder="Sua senha"
+              placeholder="Your password"
             >
           </div>
 
@@ -68,7 +64,48 @@
             type="submit"
             class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600 focus:outline-none focus:ring-4 focus:ring-cyan-500/20"
           >
-            Entrar
+            Sign in
+          </button>
+        </form>
+      </div>
+
+      <div class="rounded-[2rem] border border-white/10 bg-white/10 p-8 text-white shadow-2xl shadow-slate-950/30 backdrop-blur">
+        <p class="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-300">Bootstrap</p>
+        <h2 class="mt-2 text-2xl font-black">Create a test user</h2>
+        <p class="mt-3 text-sm leading-6 text-slate-200">
+          Use this form only to create the first account for the environment.
+        </p>
+
+        <form method="post" action="/register" class="mt-6 space-y-4">
+          <div>
+            <label for="registerName" class="mb-2 block text-sm font-semibold text-slate-100">User name</label>
+            <input
+              id="registerName"
+              type="text"
+              name="name"
+              required
+              class="block w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
+              placeholder="ex: admin"
+            >
+          </div>
+
+          <div>
+            <label for="registerPassword" class="mb-2 block text-sm font-semibold text-slate-100">Password</label>
+            <input
+              id="registerPassword"
+              type="password"
+              name="password"
+              required
+              class="block w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-400/15"
+              placeholder="Choose a password"
+            >
+          </div>
+
+          <button
+            type="submit"
+            class="inline-flex w-full items-center justify-center rounded-2xl bg-cyan-400 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+          >
+            Create user
           </button>
         </form>
       </div>

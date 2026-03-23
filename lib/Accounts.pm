@@ -9,15 +9,25 @@ get '/login' => sub {
     return redirect '/dashboard' if session('user_id');
 
     my $error = query_parameters->get('error') || '';
+    my $notice = query_parameters->get('notice') || '';
     my %messages = (
-        missing  => 'Informe usuario e senha.',
-        inactive => 'Seu usuario esta inativo.',
-        invalid  => 'Usuario ou senha invalidos.',
+        missing  => 'Provide user and password.',
+        inactive => 'Your user is inactive.',
+        invalid  => 'Invalid user or password.',
+        duplicate => 'A user with this name already exists.',
+        register_missing => 'Fill in name and password to create the test user.',
+        register_failed => 'Could not create the test user.',
+    );
+    my %notices = (
+        registered => 'User created. You can sign in now.',
     );
 
     template 'login' => {
-        title         => 'LifeDashboard | Login',
-        error_message => $messages{$error} || '',
+        title           => 'LifeDashboard | Login',
+        error_message   => $messages{$error} || '',
+        notice_message  => $notices{$notice} || '',
+        error_class     => $messages{$error} ? '' : 'hidden',
+        notice_class    => $notices{$notice} ? '' : 'hidden',
     };
 };
 
@@ -46,6 +56,32 @@ post '/login' => sub {
     session user_name => $row->{name};
 
     return redirect '/dashboard';
+};
+
+post '/register' => sub {
+    my $name     = body_parameters->get('name');
+    my $password = body_parameters->get('password');
+
+    return redirect '/login?error=register_missing'
+        unless defined $name && length $name && defined $password && length $password;
+
+    my $dbh = database;
+    my $check_sth = $dbh->prepare('SELECT id FROM accounts WHERE name = ?');
+    $check_sth->execute($name);
+
+    return redirect '/login?error=duplicate' if $check_sth->fetchrow_hashref;
+
+    my $salt = random_string(16);
+    my $hash = argon2id_pass($password, $salt, 3, '32M');
+
+    my $sth = $dbh->prepare(
+        'INSERT INTO accounts (name, password, salt, active) VALUES (?, ?, ?, ?)'
+    );
+
+    eval { $sth->execute($name, $hash, $salt, 1); };
+    return redirect '/login?error=register_failed' if $@;
+
+    return redirect '/login?notice=registered';
 };
 
 get '/logout' => sub {
@@ -78,7 +114,7 @@ get '/accounts/account' => sub {
     }
 
     template 'accounts/account' => {
-        title             => 'LifeDashboard | Usuarios',
+        title             => 'LifeDashboard | Users',
         has_users         => scalar @users,
         users             => \@users,
         current_user_id   => $current_user_id,
@@ -102,7 +138,7 @@ get '/accounts/get/:id' => sub {
     unless ($user) {
         status 404;
         content_type 'application/json';
-        return to_json({ error => 'Usuario nao encontrado' });
+        return to_json({ error => 'User not found' });
     }
 
     $user->{active} = $user->{active} ? 1 : 0;
@@ -122,7 +158,7 @@ post '/accounts/create' => sub {
     unless (defined $name && length $name && defined $password && length $password) {
         status 400;
         content_type 'application/json';
-        return to_json({ error => 'Nome e senha sao obrigatorios' });
+        return to_json({ error => 'Name and password are required' });
     }
 
     my $dbh = database;
@@ -132,7 +168,7 @@ post '/accounts/create' => sub {
     if ($check_sth->fetchrow_hashref) {
         status 400;
         content_type 'application/json';
-        return to_json({ error => 'Ja existe um usuario com esse nome' });
+        return to_json({ error => 'A user with this name already exists' });
     }
 
     my $salt = random_string(16);
@@ -146,7 +182,7 @@ post '/accounts/create' => sub {
     if ($@) {
         status 500;
         content_type 'application/json';
-        return to_json({ error => 'Erro ao criar usuario' });
+        return to_json({ error => 'Failed to create user' });
     }
 
     my $id = $dbh->last_insert_id(undef, undef, 'accounts', 'id');
@@ -154,7 +190,7 @@ post '/accounts/create' => sub {
     content_type 'application/json';
     return to_json({
         success => 1,
-        message => 'Usuario criado com sucesso',
+        message => 'User created successfully',
         user    => {
             id      => $id,
             name    => $name,
@@ -179,7 +215,7 @@ post '/accounts/update/:id' => sub {
     unless ($check_sth->fetchrow_hashref) {
         status 404;
         content_type 'application/json';
-        return to_json({ error => 'Usuario nao encontrado' });
+        return to_json({ error => 'User not found' });
     }
 
     my @fields;
@@ -192,7 +228,7 @@ post '/accounts/update/:id' => sub {
         if ($duplicate_sth->fetchrow_hashref) {
             status 400;
             content_type 'application/json';
-            return to_json({ error => 'Ja existe um usuario com esse nome' });
+            return to_json({ error => 'A user with this name already exists' });
         }
 
         push @fields, 'name = ?';
@@ -216,7 +252,7 @@ post '/accounts/update/:id' => sub {
     unless (@fields) {
         status 400;
         content_type 'application/json';
-        return to_json({ error => 'Nenhum campo para atualizar' });
+        return to_json({ error => 'No fields to update' });
     }
 
     push @values, $id;
@@ -228,7 +264,7 @@ post '/accounts/update/:id' => sub {
     if ($@) {
         status 500;
         content_type 'application/json';
-        return to_json({ error => 'Erro ao atualizar usuario' });
+        return to_json({ error => 'Failed to update user' });
     }
 
     my $user_sth = $dbh->prepare('SELECT id, name, active FROM accounts WHERE id = ?');
@@ -244,7 +280,7 @@ post '/accounts/update/:id' => sub {
     content_type 'application/json';
     return to_json({
         success => 1,
-        message => 'Usuario atualizado com sucesso',
+        message => 'User updated successfully',
         user    => $user,
     });
 };
@@ -261,14 +297,14 @@ post '/accounts/delete/:id' => sub {
     unless ($check_sth->fetchrow_hashref) {
         status 404;
         content_type 'application/json';
-        return to_json({ error => 'Usuario nao encontrado' });
+        return to_json({ error => 'User not found' });
     }
 
     my $current_user_id = session('user_id');
     if (defined $current_user_id && $current_user_id == $id) {
         status 400;
         content_type 'application/json';
-        return to_json({ error => 'Voce nao pode excluir seu proprio usuario' });
+        return to_json({ error => 'You cannot delete your own user' });
     }
 
     my $sth = $dbh->prepare('DELETE FROM accounts WHERE id = ?');
@@ -277,13 +313,13 @@ post '/accounts/delete/:id' => sub {
     if ($@) {
         status 500;
         content_type 'application/json';
-        return to_json({ error => 'Erro ao excluir usuario' });
+        return to_json({ error => 'Failed to delete user' });
     }
 
     content_type 'application/json';
     return to_json({
         success => 1,
-        message => 'Usuario excluido com sucesso',
+        message => 'User deleted successfully',
     });
 };
 
@@ -298,7 +334,7 @@ sub _require_api_auth {
 sub _json_unauthorized {
     status 401;
     content_type 'application/json';
-    return to_json({ error => 'Sessao expirada. Faca login novamente.' });
+    return to_json({ error => 'Session expired. Please sign in again.' });
 }
 
 sub random_string {
