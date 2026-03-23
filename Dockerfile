@@ -5,6 +5,7 @@ FROM perl:5.38-slim
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
+    pkg-config \
     libpq-dev \
     postgresql-client \
     cpanminus \
@@ -17,8 +18,10 @@ WORKDIR /app
 # Copy dependency files first for better layer caching
 COPY cpanfile Makefile.PL ./
 
-# Install Perl dependencies from project definition
-RUN cpanm --notest --installdeps .
+# Install Perl dependencies from project definition and force critical modules
+RUN cpanm --notest --installdeps . \
+    && cpanm --notest Crypt::Argon2 DBD::Pg Starman \
+    && perl -MCrypt::Argon2 -e 1
 
 # Copy application files
 COPY . .
