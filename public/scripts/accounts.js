@@ -1,79 +1,94 @@
-/**
- * Accounts Management JavaScript
- * Handles user CRUD operations
- */
+let userToDelete = null;
 
-// Modal functions
 function openModal() {
+  const form = document.getElementById('userForm');
   document.getElementById('userModal').classList.remove('hidden');
-  document.getElementById('modalTitle').textContent = 'Novo Usuário';
-  document.getElementById('userForm').reset();
+  document.getElementById('modalTitle').textContent = 'Novo usuario';
   document.getElementById('userId').value = '';
+  form.reset();
 
-  // Make password required for new users
-  document.getElementById('userPassword').setAttribute('required', 'required');
-  document.getElementById('userPassword').placeholder = '••••••••';
+  const passwordInput = document.getElementById('userPassword');
+  passwordInput.setAttribute('required', 'required');
+  passwordInput.placeholder = 'Defina a senha';
+
+  document.getElementById('passwordHint').textContent = 'A senha e obrigatoria para novos usuarios.';
 }
 
 function closeModal() {
   document.getElementById('userModal').classList.add('hidden');
 }
 
-function editUser(userId) {
-  // Load user data from server
-  $.ajax({
-    url: '/accounts/get/' + userId,
-    method: 'GET',
-    success: function(user) {
-      document.getElementById('userModal').classList.remove('hidden');
-      document.getElementById('modalTitle').textContent = 'Editar Usuário';
-      document.getElementById('userId').value = user.id;
-      document.getElementById('userName').value = user.name;
-      document.getElementById('userEmail').value = user.email;
-      document.getElementById('userStatus').value = user.active;
+async function editUser(userId) {
+  try {
+    const response = await fetch('/accounts/get/' + userId, {
+      headers: { Accept: 'application/json' }
+    });
 
-      // Make password optional for editing
-      document.getElementById('userPassword').removeAttribute('required');
-      document.getElementById('userPassword').placeholder = 'Deixe em branco para manter a senha atual';
-    },
-    error: function(xhr) {
-      var errorMsg = xhr.responseJSON?.error || 'Erro ao carregar dados do usuário';
-      alert(errorMsg);
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || 'Erro ao carregar usuario');
     }
-  });
+
+    document.getElementById('userModal').classList.remove('hidden');
+    document.getElementById('modalTitle').textContent = 'Editar usuario';
+    document.getElementById('userId').value = payload.id;
+    document.getElementById('userName').value = payload.name || '';
+    document.getElementById('userStatus').value = String(payload.active ? 1 : 0);
+    document.getElementById('userPassword').value = '';
+    document.getElementById('userPassword').removeAttribute('required');
+    document.getElementById('userPassword').placeholder = 'Preencha so se quiser trocar a senha';
+    document.getElementById('passwordHint').textContent = 'Deixe a senha vazia para manter a atual.';
+  } catch (error) {
+    showFeedback(error.message, 'error');
+  }
 }
 
-function submitUser(event) {
+async function submitUser(event) {
   event.preventDefault();
-  const formData = new FormData(event.target);
+
   const userId = document.getElementById('userId').value;
+  const data = new URLSearchParams();
+  data.set('name', document.getElementById('userName').value.trim());
+  data.set('active', document.getElementById('userStatus').value);
 
-  // Convert FormData to object
-  const data = Object.fromEntries(formData);
-
-  // Remove password from data if it's empty (for edit mode)
-  if (userId && !data.password) {
-    delete data.password;
+  const password = document.getElementById('userPassword').value;
+  if (password) {
+    data.set('password', password);
   }
 
-  $.ajax({
-    url: userId ? '/accounts/update/' + userId : '/accounts/create',
-    method: 'POST',
-    data: data,
-    success: function(response) {
-      alert(response.message || 'Usuário salvo com sucesso!');
-      closeModal();
-      location.reload();
-    },
-    error: function(xhr) {
-      var errorMsg = xhr.responseJSON?.error || 'Erro ao salvar usuário';
-      alert(errorMsg);
-    }
-  });
-}
+  if (!userId && !password) {
+    showFeedback('Defina uma senha para criar o usuario.', 'error');
+    return;
+  }
 
-// Delete functions
-let userToDelete = null;
+  try {
+    const response = await fetch(userId ? '/accounts/update/' + userId : '/accounts/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Accept: 'application/json'
+      },
+      body: data.toString()
+    });
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || 'Erro ao salvar usuario');
+    }
+
+    closeModal();
+
+    if (userId) {
+      updateUserRow(payload.user);
+    } else {
+      prependUserRow(payload.user);
+    }
+
+    showFeedback(payload.message || 'Usuario salvo com sucesso.', 'success');
+  } catch (error) {
+    showFeedback(error.message, 'error');
+  }
+}
 
 function deleteUser(userId, userName) {
   userToDelete = userId;
@@ -82,61 +97,188 @@ function deleteUser(userId, userName) {
 }
 
 function closeDeleteModal() {
-  document.getElementById('deleteModal').classList.add('hidden');
   userToDelete = null;
+  document.getElementById('deleteModal').classList.add('hidden');
 }
 
-function confirmDelete() {
-  if (userToDelete) {
-    $.ajax({
-      url: '/accounts/delete/' + userToDelete,
+async function confirmDelete() {
+  if (!userToDelete) {
+    return;
+  }
+
+  try {
+    const response = await fetch('/accounts/delete/' + userToDelete, {
       method: 'POST',
-      success: function(response) {
-        alert(response.message || 'Usuário excluído com sucesso!');
-        closeDeleteModal();
-        location.reload();
-      },
-      error: function(xhr) {
-        var errorMsg = xhr.responseJSON?.error || 'Erro ao excluir usuário';
-        alert(errorMsg);
-        closeDeleteModal();
-      }
+      headers: { Accept: 'application/json' }
     });
+
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.error || 'Erro ao excluir usuario');
+    }
+
+    const row = document.getElementById('user-row-' + userToDelete);
+    if (row) {
+      row.remove();
+    }
+
+    ensureEmptyState();
+    closeDeleteModal();
+    showFeedback(payload.message || 'Usuario excluido com sucesso.', 'success');
+  } catch (error) {
+    closeDeleteModal();
+    showFeedback(error.message, 'error');
   }
 }
 
-// Search functionality
-document.addEventListener('DOMContentLoaded', function() {
-  const searchInput = document.getElementById('searchInput');
+function updateUserRow(user) {
+  const row = document.getElementById('user-row-' + user.id);
+  if (!row) {
+    prependUserRow(user);
+    return;
+  }
 
+  const nextRow = buildUserRow(user);
+  row.replaceWith(nextRow);
+}
+
+function prependUserRow(user) {
+  const tbody = document.getElementById('usersTableBody');
+  const emptyState = document.getElementById('emptyState');
+  if (emptyState) {
+    emptyState.remove();
+  }
+
+  tbody.prepend(buildUserRow(user));
+}
+
+function buildUserRow(user) {
+  const currentUserId = document.getElementById('accountsPage')?.dataset.currentUserId;
+  const canDelete = String(user.id) !== String(currentUserId);
+  const row = document.createElement('tr');
+  row.id = 'user-row-' + user.id;
+  row.className = 'user-row transition hover:bg-slate-50';
+  row.dataset.userId = user.id;
+  row.dataset.userName = user.name;
+  row.dataset.userActive = user.active ? '1' : '0';
+
+  const statusClass = user.active
+    ? 'inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700'
+    : 'inline-flex rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-600';
+  const statusLabel = user.active ? 'Ativo' : 'Inativo';
+  const initial = user.initial || (user.name || '?').slice(0, 1).toUpperCase();
+
+  const deleteButton = canDelete ? `
+        <button
+          type="button"
+          onclick="deleteUser(${user.id}, '${escapeJs(user.name)}')"
+          class="rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-rose-600 transition hover:bg-rose-50"
+        >
+          Excluir
+        </button>
+  ` : '';
+
+  row.innerHTML = `
+    <td class="px-6 py-5">
+      <div class="flex items-center gap-4">
+        <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-sm font-bold text-white">${escapeHtml(initial)}</div>
+        <div>
+          <p class="text-sm font-semibold text-slate-900">${escapeHtml(user.name)}</p>
+          <p class="text-xs uppercase tracking-[0.22em] text-slate-400">Conta interna</p>
+        </div>
+      </div>
+    </td>
+    <td class="px-6 py-5 text-sm text-slate-500">#${user.id}</td>
+    <td class="px-6 py-5">
+      <span class="${statusClass}">${statusLabel}</span>
+    </td>
+    <td class="px-6 py-5">
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          onclick="editUser(${user.id})"
+          class="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600 transition hover:border-cyan-500 hover:text-cyan-600"
+        >
+          Editar
+        </button>
+        ${deleteButton}
+      </div>
+    </td>
+  `;
+
+  return row;
+}
+
+function ensureEmptyState() {
+  const tbody = document.getElementById('usersTableBody');
+  const rows = tbody.querySelectorAll('.user-row');
+
+  if (rows.length > 0 || document.getElementById('emptyState')) {
+    return;
+  }
+
+  const empty = document.createElement('tr');
+  empty.id = 'emptyState';
+  empty.innerHTML = '<td colspan="4" class="px-6 py-12 text-center text-sm text-slate-500">Nenhum usuario cadastrado.</td>';
+  tbody.appendChild(empty);
+}
+
+function showFeedback(message, type) {
+  const feedback = document.getElementById('feedback');
+  feedback.textContent = message;
+  feedback.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-700', 'border', 'border-emerald-200', 'bg-rose-50', 'text-rose-700', 'border-rose-200');
+
+  if (type === 'success') {
+    feedback.classList.add('border', 'border-emerald-200', 'bg-emerald-50', 'text-emerald-700');
+  } else {
+    feedback.classList.add('border', 'border-rose-200', 'bg-rose-50', 'text-rose-700');
+  }
+
+  clearTimeout(showFeedback.timeoutId);
+  showFeedback.timeoutId = window.setTimeout(() => {
+    feedback.classList.add('hidden');
+  }, 5000);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function escapeJs(value) {
+  return String(value).replaceAll('\\', '\\\\').replaceAll("'", "\\'");
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('userForm')?.addEventListener('submit', submitUser);
+
+  const searchInput = document.getElementById('searchInput');
   if (searchInput) {
-    searchInput.addEventListener('input', function(e) {
-      const searchTerm = e.target.value.toLowerCase();
+    searchInput.addEventListener('input', event => {
+      const term = event.target.value.trim().toLowerCase();
       const rows = document.querySelectorAll('.user-row');
 
       rows.forEach(row => {
-        const name = row.getAttribute('data-user-name').toLowerCase();
-        const email = row.getAttribute('data-user-email').toLowerCase();
-
-        if (name.includes(searchTerm) || email.includes(searchTerm)) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
+        const name = (row.dataset.userName || '').toLowerCase();
+        row.style.display = !term || name.includes(term) ? '' : 'none';
       });
     });
   }
 
-  // Close modal when clicking outside
-  window.onclick = function(event) {
+  window.addEventListener('click', event => {
     const userModal = document.getElementById('userModal');
     const deleteModal = document.getElementById('deleteModal');
 
     if (event.target === userModal) {
       closeModal();
     }
+
     if (event.target === deleteModal) {
       closeDeleteModal();
     }
-  }
+  });
 });

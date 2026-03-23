@@ -1,65 +1,77 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Dancer2</title>
+<div class="min-h-screen bg-slate-950 text-slate-100">
+  <div class="mx-auto flex min-h-screen max-w-6xl flex-col justify-center gap-12 px-6 py-10 lg:flex-row lg:items-center">
+    <section class="max-w-xl">
+      <p class="mb-4 inline-flex rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">
+        LifeDashboard
+      </p>
+      <h1 class="max-w-lg text-4xl font-black leading-tight text-white sm:text-5xl">
+        Controle o acesso do painel sem depender de gambiarra no front.
+      </h1>
+      <p class="mt-5 max-w-lg text-base leading-7 text-slate-300">
+        Login direto, sessao simples e area administrativa pronta para manter usuarios do sistema.
+      </p>
+      <div class="mt-8 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p class="font-semibold text-white">Autenticacao</p>
+          <p class="mt-2">Sessao persistida no servidor com redirecionamento para a area protegida.</p>
+        </div>
+        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p class="font-semibold text-white">Usuarios</p>
+          <p class="mt-2">CRUD integrado ao backend ja existente, sem campos fantasmas.</p>
+        </div>
+      </div>
+    </section>
 
-<script src="https://cdn.tailwindcss.com"></script>
+    <section class="w-full max-w-md">
+      <div class="rounded-3xl border border-white/10 bg-white p-8 text-slate-900 shadow-2xl shadow-cyan-950/30">
+        <div class="mb-8">
+          <p class="text-sm font-semibold uppercase tracking-[0.25em] text-slate-400">Acesso</p>
+          <h2 class="mt-2 text-3xl font-black text-slate-950">Entrar no painel</h2>
+          <p class="mt-3 text-sm leading-6 text-slate-500">Use o usuario salvo na tabela `accounts` para continuar.</p>
+        </div>
 
-</head>
+        <% IF error_message %>
+          <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <% error_message %>
+          </div>
+        <% END %>
 
-<body class="bg-slate-900 flex items-center justify-center min-h-screen">
+        <form method="post" action="/login" class="space-y-5">
+          <div>
+            <label for="user" class="mb-2 block text-sm font-semibold text-slate-700">Usuario</label>
+            <input
+              id="user"
+              type="text"
+              name="user"
+              required
+              autofocus
+              class="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/15"
+              placeholder="Seu nome de acesso"
+            >
+          </div>
 
-<div class="w-full max-w-md">
+          <div>
+            <div class="mb-2 flex items-center justify-between">
+              <label for="password" class="block text-sm font-semibold text-slate-700">Senha</label>
+            </div>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              required
+              class="block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-500 focus:bg-white focus:ring-4 focus:ring-cyan-500/15"
+              placeholder="Sua senha"
+            >
+          </div>
 
-<div class="bg-white shadow-xl rounded-2xl p-8">
-
-<h1 class="text-3xl font-bold text-center text-slate-800">
-Life Dashboard
-</h1>
-
-<p class="text-center text-slate-500 mb-6">
-Acesso ao sistema
-</p>
-
-<form method="post" action="/login" class="space-y-4">
-
-<div>
-<label class="block text-sm text-slate-600 mb-1">
-Usuário
-</label>
-
-<input
-type="text"
-name="user"
-class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-/>
+          <button
+            type="submit"
+            class="inline-flex w-full items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600 focus:outline-none focus:ring-4 focus:ring-cyan-500/20"
+          >
+            Entrar
+          </button>
+        </form>
+      </div>
+    </section>
+  </div>
 </div>
-
-<div>
-<label class="block text-sm text-slate-600 mb-1">
-Senha
-</label>
-
-<input
-type="password"
-name="password"
-class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-/>
-</div>
-
-<button
-type="submit"
-class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
->
-Entrar
-</button>
-
-</form>
-
-</div>
-
-</div>
-
-</body>
-</html>
