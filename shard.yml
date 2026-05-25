@@ -1,0 +1,19 @@
+name: lifedashboard
+version: 0.1.0
+
+authors:
+  - davi19 <davi19_19@hotmail.com>
+
+targets:
+  lifedashboard:
+    main: src/lifedashboard.cr
+
+crystal: '>= 1.20.2'
+
+dependencies:
+    kemal:
+        github: kemalcr/kemal
+
+
+
+license: MIT
