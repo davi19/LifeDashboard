@@ -1,0 +1,24 @@
+<br/>
+<br/>
+<br/>
+<br/>
+<div style="text-align: center;">
+    <img src="images/logo.webp" height="250" width="250">
+    <h3>Life Dashboard</h3>
+
+    <article style="display: grid; place-items: center; width: 50%; margin-inline: auto; text-align: left;">
+        <form style="width: 100%;" name="login">
+            <p>Usuário</p>
+            <input name="user" type="text" />
+
+            <p>Senha</p>
+            <input name="password" type="password" />
+
+            <p style="text-align: right;"><a>Esqueceu a senha ? 🤡 </a></p>
+
+            <div style="display: flex; justify-content: flex-end;">
+                <button style="margin-bottom: 0; width: auto;" hx-post="http://localhost:3000/" form="login">Entrar</button>
+            </div>
+        </form>
+    </article>
+</div>
